@@ -1,4 +1,5 @@
 const express = require('express');
+const authenticateToken = require('./middleware/authenticateToken');
 const { setCSP, setCSRF } = require('./middleware/security');
 const commentRoutes = require('./routes/comments');
 const userRoutes = require('./routes/users');
@@ -34,7 +35,7 @@ app.get('/get-csrf-token', (req, res) => {
 
 // Регистрация маршрутов
 app.use('/users', userRoutes);
-app.use('/comments', commentRoutes);
+app.use('/comments', authenticateToken, commentRoutes);
 
 // Обработка ошибок CSRF
 app.use((err, req, res, next) => {

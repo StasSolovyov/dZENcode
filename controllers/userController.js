@@ -1,23 +1,22 @@
 const { body, validationResult } = require('express-validator');
+const jwt = require('jsonwebtoken');
 const axios = require('axios');
 const User = require('../models/User');
 
 exports.createUser = async (req, res) => {
-    console.log('Received recaptchaToken:', req.body.recaptchaToken); // Логирование токена reCAPTCHA
-    console.log('Received form data:', req.body); // Логирование всех данных формы
+    console.log('Received recaptchaToken:', req.body.recaptchaToken);
+    console.log('Received form data:', req.body);
     console.log('Received data:', req.body);
-    // Извлекаем токен reCAPTCHA из запроса
-    const recaptchaToken = req.body.recaptchaToken;
 
+    const recaptchaToken = req.body.recaptchaToken;
     if (!recaptchaToken) {
         return res
             .status(400)
             .json({ message: 'No reCAPTCHA token provided.' });
     }
 
-    // Функция для верификации reCAPTCHA с помощью сервера Google
     const verifyRecaptcha = async (token) => {
-        const secretKey = '6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe';
+        const secretKey = '6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe'; // Используйте переменную окружения для секретного ключа в продакшене
         const url = `https://www.google.com/recaptcha/api/siteverify?secret=${secretKey}&response=${token}`;
 
         try {
@@ -29,13 +28,11 @@ exports.createUser = async (req, res) => {
         }
     };
 
-    // Проверяем reCAPTCHA
     const isCaptchaValid = await verifyRecaptcha(recaptchaToken);
     if (!isCaptchaValid) {
         return res.status(400).json({ message: 'Captcha validation failed' });
     }
 
-    // Валидация данных формы
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
@@ -47,10 +44,19 @@ exports.createUser = async (req, res) => {
             email: req.body.email,
             homepage: req.body.homepage,
         });
+
+        // Создание JWT
+        const token = jwt.sign(
+            { userId: newUser._id },
+            'kPITNhRmGv9AonqY2NgO7T7j_nzdTQKuWUIqnHNJBDw', // Используйте переменную окружения для секретного ключа
+            { expiresIn: '24h' }
+        );
+
         await newUser.save();
         res.status(201).json({
             message: 'User registered successfully',
             userId: newUser._id,
+            token: token, // Возвращаем JWT в ответе
         });
     } catch (error) {
         res.status(500).send(error.message);
