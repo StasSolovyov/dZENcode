@@ -1,6 +1,6 @@
 const Comment = require('../models/Comment');
 const User = require('../models/User');
-const escapeHtml = require('escape-html'); // Добавлено для экранирования HTML
+const escapeHtml = require('escape-html'); // Для экранирования HTML
 
 exports.createComment = async (req, res) => {
     try {
@@ -9,7 +9,7 @@ exports.createComment = async (req, res) => {
             return res.status(404).send('User not found');
         }
 
-        const text = escapeHtml(req.body.text); // Экранирование ввода пользователя
+        const text = escapeHtml(req.body.text); // Экранирование ввода пользователя для безопасности
         const newComment = new Comment({
             text: text, // Использование экранированного текста
             user: req.body.userId,
@@ -29,11 +29,11 @@ exports.getAllComments = async (req, res) => {
     try {
         const comments = await Comment.find()
             .populate('user', 'username email')
-            .sort({ createdAt: -1 }) // Сортировка по убыванию даты создания
+            .sort({ createdAt: -1 }) // Сортировка по убыванию даты создания для реализации LIFO
             .skip(skip)
             .limit(limit);
 
-        const total = await Comment.countDocuments(); // Общее количество комментариев для пагинации
+        const total = await Comment.countDocuments();
 
         res.status(200).json({
             total,
@@ -47,16 +47,12 @@ exports.getAllComments = async (req, res) => {
 };
 
 exports.uploadFile = async (req, res) => {
-    try {
-        if (!req.file) {
-            return res.status(400).json({ message: 'No file uploaded' });
-        }
-        const fileUrl = req.file.path;
-        res.status(200).json({
-            message: 'File uploaded successfully',
-            fileUrl: fileUrl,
-        });
-    } catch (error) {
-        res.status(500).send(error.message);
+    if (!req.file) {
+        return res.status(400).json({ message: 'No file uploaded' });
     }
+    const fileUrl = req.file.path;
+    res.status(200).json({
+        message: 'File uploaded successfully',
+        fileUrl: fileUrl,
+    });
 };
