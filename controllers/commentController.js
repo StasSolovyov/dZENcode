@@ -1,5 +1,6 @@
 const Comment = require('../models/Comment');
 const User = require('../models/User');
+const escapeHtml = require('escape-html'); // Добавлено для экранирования HTML
 
 exports.createComment = async (req, res) => {
     try {
@@ -8,8 +9,9 @@ exports.createComment = async (req, res) => {
             return res.status(404).send('User not found');
         }
 
+        const text = escapeHtml(req.body.text); // Экранирование ввода пользователя
         const newComment = new Comment({
-            text: req.body.text,
+            text: text, // Использование экранированного текста
             user: req.body.userId,
         });
         await newComment.save();

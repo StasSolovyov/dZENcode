@@ -13,7 +13,12 @@ router.post(
         body('email').isEmail().withMessage('Invalid email format'),
         body('homepage').optional().isURL().withMessage('Invalid URL format'),
     ],
-    userController.createUser
+    (req, res) => {
+        console.log('CSRF Token from body:', req.body._csrf); // Логирование CSRF токена
+        console.log('Cookies received:', req.cookies); // Логирование полученных кук
+
+        userController.createUser(req, res); // Вызов контроллера для создания пользователя
+    }
 );
 
 module.exports = router;
