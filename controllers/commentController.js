@@ -1,6 +1,6 @@
 const Comment = require('../models/Comment');
 const User = require('../models/User');
-const escapeHtml = require('escape-html'); // Для экранирования HTML
+const escapeHtml = require('escape-html');
 
 exports.createComment = async (req, res) => {
     try {
@@ -9,10 +9,11 @@ exports.createComment = async (req, res) => {
             return res.status(404).send('User not found');
         }
 
-        const text = escapeHtml(req.body.text); // Экранирование ввода пользователя для безопасности
+        const text = escapeHtml(req.body.text);
         const newComment = new Comment({
-            text: text, // Использование экранированного текста
+            text: text,
             user: req.body.userId,
+            fileUrl: req.file ? req.file.path : null, // Сохраняем ссылку на файл, если загружен
         });
         await newComment.save();
         res.status(201).send(newComment);
@@ -29,7 +30,7 @@ exports.getAllComments = async (req, res) => {
     try {
         const comments = await Comment.find()
             .populate('user', 'username email')
-            .sort({ createdAt: -1 }) // Сортировка по убыванию даты создания для реализации LIFO
+            .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit);
 
@@ -44,15 +45,4 @@ exports.getAllComments = async (req, res) => {
     } catch (error) {
         res.status(500).send(error.message);
     }
-};
-
-exports.uploadFile = async (req, res) => {
-    if (!req.file) {
-        return res.status(400).json({ message: 'No file uploaded' });
-    }
-    const fileUrl = req.file.path;
-    res.status(200).json({
-        message: 'File uploaded successfully',
-        fileUrl: fileUrl,
-    });
 };
