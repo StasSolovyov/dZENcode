@@ -1,5 +1,6 @@
 const { validationResult } = require('express-validator');
 const jwt = require('jsonwebtoken');
+const redisClient = require('../redisClient'); // Импортируем настроенный клиент Redis
 const User = require('../models/User');
 
 exports.createUser = async (req, res) => {
@@ -19,8 +20,16 @@ exports.createUser = async (req, res) => {
 
         const token = jwt.sign(
             { userId: newUser._id },
-            'kPITNhRmGv9AonqY2NgO7T7j_nzdTQKuWUIqnHNJBDw', // Используйте переменную окружения для секретного ключа
+            'your_secret_key_here',
             { expiresIn: '24h' }
+        );
+
+        // Сохраняем токен в Redis
+        await redisClient.set(
+            `auth_tokens:${token}`,
+            JSON.stringify({ userId: newUser._id }), // Лучше сохранять минимально необходимую информацию
+            'EX',
+            86400
         );
 
         res.status(201).json({
