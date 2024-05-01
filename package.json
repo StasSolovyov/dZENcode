@@ -10,10 +10,13 @@
     "author": "",
     "license": "ISC",
     "dependencies": {
+        "@aws-sdk/client-sqs": "^3.564.0",
+        "aws-sdk": "^2.1608.0",
         "axios": "^1.6.8",
         "bull": "^4.12.2",
         "cookie-parser": "^1.4.6",
         "csurf": "^1.11.0",
+        "dotenv": "^16.4.5",
         "escape-html": "^1.0.3",
         "express": "^4.19.2",
         "express-recaptcha": "^5.1.0",

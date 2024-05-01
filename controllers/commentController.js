@@ -1,4 +1,4 @@
-const Comment = require('../models/Comment');
+const { sqs, queueUrl } = require('../src/config/awsConfig');
 const User = require('../models/User');
 const escapeHtml = require('escape-html');
 
@@ -10,14 +10,29 @@ exports.createComment = async (req, res) => {
         }
 
         const text = escapeHtml(req.body.text);
-        const newComment = new Comment({
+        // Включаем необходимые данные пользователя в сообщение
+        const commentData = {
             text: text,
-            user: req.body.userId,
-            fileUrl: req.file ? req.file.path : null, // Сохраняем ссылку на файл, если загружен
-        });
-        await newComment.save();
-        res.status(201).send(newComment);
+            userId: req.body.userId,
+            user: {
+                // Выберите поля, которые нужно включить
+                username: user.username,
+
+                // Добавьте другие поля по необходимости
+            },
+            fileUrl: req.file ? req.file.path : null,
+        };
+
+        const params = {
+            MessageBody: JSON.stringify(commentData),
+            QueueUrl: queueUrl,
+        };
+
+        const sendResult = await sqs.sendMessage(params).promise();
+        console.log('Message sent to SQS:', sendResult.MessageId);
+        res.status(202).send({ message: 'Comment is being processed' });
     } catch (error) {
+        console.error('Failed to send message to SQS:', error);
         res.status(500).send(error.message);
     }
 };
