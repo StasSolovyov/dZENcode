@@ -8,4 +8,4 @@ AWS.config.update({
 });
 
 const sqs = new AWS.SQS({ apiVersion: '2012-11-05' });
-module.exports = { sqs, queueUrl: process.env.QUEUE_URL };
+module.exports = { sqs, queueUrl: 'https://sqs.us-east-1.amazonaws.com/891377000097/Stas' };
